@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { todosService, CreateTodoData } from '@/services/todos';
+import { Theme } from '@/constants/Theme';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function CreateTodoScreen() {
   const [title, setTitle] = useState('');
@@ -13,10 +15,16 @@ export default function CreateTodoScreen() {
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [dueDate, setDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a title');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Please enter a title'
+      });
       return;
     }
 
@@ -58,15 +66,26 @@ export default function CreateTodoScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView>
-        <ThemedText type="title" style={styles.header}>Create New Todo</ThemedText>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={[styles.icon, { backgroundColor: Theme.colors.success }]}>
+            <ThemedText style={styles.iconText}>+</ThemedText>
+          </View>
+          <ThemedText type="title" style={styles.title}>Create New Todo</ThemedText>
+          <ThemedText style={styles.subtitle}>Add a new task to your list</ThemedText>
+        </View>
         
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Title *</ThemedText>
             <TextInput
-              style={styles.input}
+              style={[styles.input, {
+                backgroundColor: isDark ? Theme.colors.backgroundSecondaryDark : Theme.colors.backgroundSecondary,
+                borderColor: isDark ? Theme.colors.borderDark : Theme.colors.border,
+                color: isDark ? Theme.colors.textDark : Theme.colors.text
+              }]}
               placeholder="Enter todo title"
+              placeholderTextColor={isDark ? Theme.colors.textTertiaryDark : Theme.colors.textTertiary}
               value={title}
               onChangeText={setTitle}
               maxLength={100}
@@ -76,8 +95,13 @@ export default function CreateTodoScreen() {
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Description</ThemedText>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, {
+                backgroundColor: isDark ? Theme.colors.backgroundSecondaryDark : Theme.colors.backgroundSecondary,
+                borderColor: isDark ? Theme.colors.borderDark : Theme.colors.border,
+                color: isDark ? Theme.colors.textDark : Theme.colors.text
+              }]}
               placeholder="Enter description (optional)"
+              placeholderTextColor={isDark ? Theme.colors.textTertiaryDark : Theme.colors.textTertiary}
               value={description}
               onChangeText={setDescription}
               multiline
@@ -88,24 +112,38 @@ export default function CreateTodoScreen() {
 
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Priority</ThemedText>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={priority}
-                onValueChange={(value) => setPriority(value)}
-                style={styles.picker}
-              >
-                <Picker.Item label="Low" value="low" />
-                <Picker.Item label="Medium" value="medium" />
-                <Picker.Item label="High" value="high" />
-              </Picker>
+            <View style={[styles.priorityContainer]}>
+              {(['low', 'medium', 'high'] as const).map((p) => (
+                <TouchableOpacity
+                  key={p}
+                  style={[styles.priorityButton, {
+                    backgroundColor: priority === p 
+                      ? (p === 'high' ? Theme.colors.error : p === 'medium' ? Theme.colors.warning : Theme.colors.success)
+                      : (isDark ? Theme.colors.backgroundSecondaryDark : Theme.colors.backgroundSecondary),
+                    borderColor: isDark ? Theme.colors.borderDark : Theme.colors.border,
+                  }]}
+                  onPress={() => setPriority(p)}
+                >
+                  <ThemedText style={[styles.priorityText, {
+                    color: priority === p ? 'white' : (isDark ? Theme.colors.textDark : Theme.colors.text)
+                  }]}>
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </ThemedText>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
 
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Due Date (Optional)</ThemedText>
             <TextInput
-              style={styles.input}
+              style={[styles.input, {
+                backgroundColor: isDark ? Theme.colors.backgroundSecondaryDark : Theme.colors.backgroundSecondary,
+                borderColor: isDark ? Theme.colors.borderDark : Theme.colors.border,
+                color: isDark ? Theme.colors.textDark : Theme.colors.text
+              }]}
               placeholder="YYYY-MM-DD"
+              placeholderTextColor={isDark ? Theme.colors.textTertiaryDark : Theme.colors.textTertiary}
               value={dueDate}
               onChangeText={setDueDate}
               maxLength={10}
@@ -131,40 +169,72 @@ export default function CreateTodoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: Theme.spacing.md,
   },
   header: {
-    marginBottom: 24,
+    alignItems: 'center',
+    marginTop: Theme.spacing.lg,
+    marginBottom: Theme.spacing.xxl,
+  },
+  icon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
+    ...Theme.shadows.md,
+  },
+  iconText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  title: {
     textAlign: 'center',
+    marginBottom: Theme.spacing.sm,
+  },
+  subtitle: {
+    textAlign: 'center',
+    opacity: 0.7,
+    fontSize: 14,
   },
   form: {
-    gap: 20,
+    gap: Theme.spacing.lg,
   },
   inputGroup: {
-    gap: 8,
+    gap: Theme.spacing.sm,
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 12,
-    borderRadius: 8,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.md,
     fontSize: 16,
+    ...Theme.shadows.sm,
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+  priorityContainer: {
+    flexDirection: 'row',
+    gap: Theme.spacing.sm,
   },
-  picker: {
-    height: 50,
+  priorityButton: {
+    flex: 1,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.sm,
+    alignItems: 'center',
+    borderWidth: 1,
+    ...Theme.shadows.sm,
+  },
+  priorityText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   hint: {
     fontSize: 12,
@@ -172,11 +242,12 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   button: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: Theme.colors.success,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.md,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: Theme.spacing.lg,
+    ...Theme.shadows.md,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -184,6 +255,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
 });

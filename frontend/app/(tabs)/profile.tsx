@@ -4,9 +4,13 @@ import Toast from 'react-native-toast-message';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/context/AuthContext';
+import { Theme } from '@/constants/Theme';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const handleLogout = () => {
     Alert.alert(
@@ -40,12 +44,18 @@ export default function ProfileScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.header}>Profile</ThemedText>
+      <View style={styles.header}>
+        <ThemedText type="title" style={styles.title}>Profile</ThemedText>
+        <ThemedText style={styles.subtitle}>Manage your account</ThemedText>
+      </View>
       
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
+      <View style={[styles.profileCard, {
+        backgroundColor: isDark ? Theme.colors.backgroundSecondaryDark : Theme.colors.backgroundSecondary,
+        borderColor: isDark ? Theme.colors.borderDark : Theme.colors.border,
+      }]}>
+        <View style={[styles.avatar, { backgroundColor: Theme.colors.primary }]}>
           <ThemedText style={styles.avatarText}>
-            {user?.username.charAt(0).toUpperCase()}
+            {user?.username?.charAt(0)?.toUpperCase() || '?'}
           </ThemedText>
         </View>
         
@@ -56,13 +66,16 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <ThemedText style={styles.logoutText}>Logout</ThemedText>
+        <TouchableOpacity 
+          style={[styles.logoutButton, { backgroundColor: Theme.colors.error }]} 
+          onPress={handleLogout}
+        >
+          <ThemedText style={styles.logoutText}>Sign Out</ThemedText>
         </TouchableOpacity>
       </View>
 
       <View style={styles.footer}>
-        <ThemedText style={styles.footerText}>Todo App v1.0.0</ThemedText>
+        <ThemedText style={styles.footerText}>TodoMaster v1.0.0</ThemedText>
         <ThemedText style={styles.footerText}>Built with React Native & NestJS</ThemedText>
       </View>
     </ThemedView>
@@ -72,65 +85,76 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: Theme.spacing.md,
   },
   header: {
-    marginBottom: 32,
+    alignItems: 'center',
+    marginTop: Theme.spacing.lg,
+    marginBottom: Theme.spacing.xxl,
+  },
+  title: {
     textAlign: 'center',
+    marginBottom: Theme.spacing.sm,
+  },
+  subtitle: {
+    textAlign: 'center',
+    opacity: 0.7,
+    fontSize: 14,
   },
   profileCard: {
-    backgroundColor: '#f9f9f9',
-    padding: 24,
-    borderRadius: 12,
+    padding: Theme.spacing.xl,
+    borderRadius: Theme.borderRadius.lg,
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: Theme.spacing.xxl,
+    borderWidth: 1,
+    ...Theme.shadows.md,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#007AFF',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Theme.spacing.lg,
+    ...Theme.shadows.md,
   },
   avatarText: {
     color: 'white',
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
   },
   userInfo: {
     alignItems: 'center',
-    gap: 4,
+    gap: Theme.spacing.xs,
   },
   username: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '600',
   },
   email: {
     fontSize: 16,
     opacity: 0.7,
   },
   actions: {
-    gap: 16,
+    gap: Theme.spacing.md,
   },
   logoutButton: {
-    backgroundColor: '#ff4444',
-    padding: 16,
-    borderRadius: 8,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.md,
     alignItems: 'center',
+    ...Theme.shadows.md,
   },
   logoutText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   footer: {
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    gap: 4,
-    paddingBottom: 20,
+    gap: Theme.spacing.xs,
+    paddingBottom: Theme.spacing.xl,
   },
   footerText: {
     fontSize: 12,

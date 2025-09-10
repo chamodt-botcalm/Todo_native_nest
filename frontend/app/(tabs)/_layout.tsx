@@ -10,12 +10,14 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '@/context/AuthContext';
 
+import { LoadingScreen } from '@/components/LoadingScreen';
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return null;
+    return <LoadingScreen />;
   }
 
   if (!user) {
@@ -54,7 +56,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
     </Tabs>
